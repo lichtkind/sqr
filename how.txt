@@ -1,0 +1,3 @@
+gcc sqr.c -o sqr
+
+gcc sqr-linear.c -O3 -o sqr-linear

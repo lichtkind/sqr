@@ -64,14 +64,37 @@ int main(int argc, char **argv) {
             unsigned char pos3 = (size - j) * size + i;
             unsigned char pos4 = (size - j) * size + (size + 1 - i);
 
-            groups_at_pos[pos ][2] = group_nr; // pair groups
-            groups_at_pos[pos2][2] = group_nr + 1;
-            groups_at_pos[pos3][2] = group_nr + 1;
-            groups_at_pos[pos4][2] = group_nr;
-            groups[ group_nr     ].cells[ 0 ] = pos;
-            groups[ group_nr     ].cells[ 1 ] = pos4;
-            groups[ group_nr + 1 ].cells[ 0 ] = pos2;
-            groups[ group_nr + 1 ].cells[ 1 ] = pos3;
+            if (i !=j && size == 6) {
+                int vertical_pairs = (i > j) ? i - j : 1 + j - i;
+                if (vertical_pairs % 2) {
+                    groups_at_pos[pos ][2] = group_nr; // pair groups
+                    groups_at_pos[pos2][2] = group_nr + 1;
+                    groups_at_pos[pos3][2] = group_nr;
+                    groups_at_pos[pos4][2] = group_nr + 1;
+                    groups[ group_nr     ].cells[ 0 ] = pos;
+                    groups[ group_nr + 1 ].cells[ 0 ] = pos2;
+                    groups[ group_nr     ].cells[ 1 ] = pos3;
+                    groups[ group_nr + 1 ].cells[ 1 ] = pos4;
+                } else {
+                    groups_at_pos[pos ][2] = group_nr; // pair groups
+                    groups_at_pos[pos2][2] = group_nr;
+                    groups_at_pos[pos3][2] = group_nr + 1;
+                    groups_at_pos[pos4][2] = group_nr + 1;
+                    groups[ group_nr     ].cells[ 0 ] = pos;
+                    groups[ group_nr     ].cells[ 1 ] = pos2;
+                    groups[ group_nr + 1 ].cells[ 0 ] = pos3;
+                    groups[ group_nr + 1 ].cells[ 1 ] = pos4;
+                }
+            } else {
+                groups_at_pos[pos ][2] = group_nr; // pair groups
+                groups_at_pos[pos2][2] = group_nr + 1;
+                groups_at_pos[pos3][2] = group_nr + 1;
+                groups_at_pos[pos4][2] = group_nr;
+                groups[ group_nr     ].cells[ 0 ] = pos;
+                groups[ group_nr + 1 ].cells[ 0 ] = pos2;
+                groups[ group_nr + 1 ].cells[ 1 ] = pos3;
+                groups[ group_nr     ].cells[ 1 ] = pos4;
+            }
             group_nr += 2;
         }
     }
@@ -134,7 +157,7 @@ int main(int argc, char **argv) {
     }
     val_at_pos[ 0 ] = init_cell_values.size;
     
-    enum iter_type {IterCheck, IterPassive, IterActive, IterPair }; // figure out solfing path ////////
+    enum iter_type {IterCheck, IterFill, IterSingle, IterPair }; // figure out solfing path ////////
 
     struct StackEl { 
         unsigned char pos;
@@ -145,7 +168,6 @@ int main(int argc, char **argv) {
     };
     struct StackEl comb_stack[max_pos];
              char  stack_index = 0;
-    unsigned char  stack_index_max = 0;
     unsigned short iter_val[ max_pos+1 ][ max_pos+1 ];
     unsigned char iter_col_index = 0;
 
@@ -183,7 +205,7 @@ int main(int argc, char **argv) {
 
         while (missing_cells > 2) {
             missing_cells--;
-            comb_stack[stack_index].type     = IterActive;
+            comb_stack[stack_index].type     = IterSingle;
             comb_stack[stack_index].pos      = empty_pos_in_group[ missing_cells ];
             comb_stack[stack_index].val2     = missing_cells;
             comb_stack[stack_index].group_nr = group_index;
@@ -191,7 +213,7 @@ int main(int argc, char **argv) {
             stack_index++;
         }
         if (missing_cells == 1)
-            comb_stack[stack_index].type     = IterPassive;
+            comb_stack[stack_index].type     = IterFill;
         else {
             comb_stack[stack_index].type     = IterPair;
             comb_stack[stack_index].val2     = empty_pos_in_group[ 1 ];
@@ -203,9 +225,11 @@ int main(int argc, char **argv) {
         stack_index += stack_inc; // print_sqr( size, val_at_pos );
 // for(i = 1; i <= group_count; i++)  printf(" %u group ( %u %u ) miss :  %i\n", i, groups[i].cells[0], groups[i].cells[1], groups[i].missing_count);
     }
-// for( i = 1; i <= group_count; i++ )     printf(" %u group ( %u %u ) sum :  %i\n", i, groups[i].cells[0], groups[i].cells[1], groups[i].missing_sum);
 
-    stack_index_max = stack_index - 1; // reset stack and values in square
+// for( i = 0; i < stack_index; i++ )     printf("stack el %i has type %i  of group %u \n", i, comb_stack[i].type, comb_stack[i].group_nr);
+
+
+    unsigned char stack_index_max = stack_index - 1; // reset stack and values in square
     stack_index = 0;
     val_at_pos[ 0 ] = 0;
     for (i = 1; i <= max_pos; i++ )
@@ -219,7 +243,7 @@ int main(int argc, char **argv) {
     for( i = 1; i <= (size * 4); i++ ) printf("-");
     printf("\n  Solution: \n");
     
-    unsigned long int iter_max = 1000000000; // 100000000
+    unsigned long int iter_max = 10000000000; // 100000000
     unsigned long int iter_cc = 0;
     unsigned int sol_cc = 0;
     unsigned int bad_sol = 0;
@@ -231,7 +255,7 @@ int main(int argc, char **argv) {
 
     while (stack_index > -1 && iter_cc < iter_max) {
         struct StackEl stack_cell = comb_stack[stack_index];
-        if (stack_cell.type == IterPair){
+        if (stack_cell.type == IterPair){ // printf(" Iter Pair , stack %i, group %u \n", stack_index, stack_cell.group_nr );
             if (stack_index_move > 0) {
                 iter_val[ stack_cell.iter_col_index ][ 0 ] = 0;
                 short missing_sum = groups[ stack_cell.group_nr ].missing_sum;
@@ -304,7 +328,9 @@ int main(int argc, char **argv) {
                 stack_index--;
                 stack_index_move = -1;
             }
-        } else if (stack_cell.type == IterActive){
+        } else if (stack_cell.type == IterSingle){ // printf(" Iter Single %i \n", stack_index );
+
+
             if (stack_index_move > 0) {
                 iter_val[ stack_cell.iter_col_index ][ 0 ] = 0;
                 short missing_sum = groups[ stack_cell.group_nr ].missing_sum;
@@ -363,14 +389,22 @@ int main(int argc, char **argv) {
                 stack_index--;
                 stack_index_move = -1;
             }
-        } else if (stack_cell.type == IterCheck){
+        } else if (stack_cell.type == IterCheck){ // printf(" Iter Check,  stack %i,  group %u \n", stack_index, stack_cell.group_nr );
             if (stack_index_move < 0) stack_index--;
             else if (groups[ stack_cell.group_nr ].missing_sum){
                     stack_index_move = -1;
                     stack_index--;
-                } else stack_index++;;
-        } else if (stack_cell.type == IterPassive){
-            pos = stack_cell.pos;
+                } else {
+                    if (stack_index == stack_index_max){
+                        sol_cc++;
+                        // print_sqr( size, val_at_pos );
+
+                        stack_index_move = -1;
+                        stack_index--;
+                    } else stack_index++;
+                }
+        } else if (stack_cell.type == IterFill){
+            pos = stack_cell.pos; // printf(" Iter Fill, stack: %i, pos: %u \n", stack_index, pos );
             if (stack_index_move < 0) { // upward slide , remove set value
                 value = val_at_pos[ pos ];
                 pos_of_val[ value ] = val_at_pos[ pos ] = 0;
@@ -395,19 +429,17 @@ int main(int argc, char **argv) {
                     groups[ groups_at_pos[pos][2] ].missing_sum -= value;
                    
                     if (stack_index == stack_index_max){
-                        int error_sum = 0;
-                        for (i = 1; i <= group_count; i++ ) error_sum += abs(groups[i].missing_sum);
+                        //int error_sum = 0;
+                        // for (i = 1; i <= group_count; i++ ) error_sum += abs(groups[i].missing_sum);
+                        // print_sqr( size, val_at_pos );
+                        sol_cc++;
                         
-                        if (error_sum){
+                        // if (error_sum){
                             //for(i = 1; i <= group_count; i++) 
                             //    printf(" %u group ( %u %u ) sum :  %i\n", i, groups[i].cells[0], groups[i].cells[1], groups[i].missing_sum);
                             //print_sqr( size, val_at_pos );
-                            bad_sol++;
-                        } 
-                        else {
-                           // print_sqr( size, val_at_pos );
-                            sol_cc++;
-                        }
+                            // bad_sol++;
+                        // } else { }
                         pos_of_val[ value ] = val_at_pos[ pos ] = 0;
                         groups[ groups_at_pos[pos][0] ].missing_sum += value;
                         groups[ groups_at_pos[pos][1] ].missing_sum += value;
@@ -424,21 +456,9 @@ int main(int argc, char **argv) {
                 }
             }
         }
-        iter_cc++;
+        iter_cc++; //  print_sqr( size, val_at_pos );  for( i = 1; i <= group_count; i++ )     printf(" iter %lu  %u group ( %u %u ) sum :  %i\n", iter_cc, i, groups[i].cells[0], groups[i].cells[1], groups[i].missing_sum);
     }
     double time_taken = ((double) (clock() - t) )/CLOCKS_PER_SEC; // calculate the elapsed time
-    printf("done %lu iterations on square size %lu, found %u solutions (%u bad) in %f sec \n", iter_cc, size, sol_cc, bad_sol, time_taken );
+    printf("done %lu iterations on square size %lu, found %u solutions in %f sec \n", iter_cc, size, sol_cc, time_taken );
     return 0;
 }
-
-/*
-            17 iterations on square size 3, found         2 solutions in   0.000265 sec
-           101 iterations on square size 4, found         4 solutions in   0.000364 sec
-     9.556.765 iterations on square size 5, found    17.376 solutions in   0.328201 sec (24 from 10 x, x6)
-
-10.000.000.000 iterations on square size 6, found 8.008.279 solutions in 845.520626 sec
-                                                  3.834.468
-
-10.000.000.000 iterations on square size 7, found 7.482.456 solutions in 438.647001 sec
-
-*/

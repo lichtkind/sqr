@@ -1,31 +1,33 @@
 use v5.12;
 use Benchmark;
 
+###################### ARGS ############################################
 my $timer = Benchmark->new;  
 my $size = int shift;
 exit say "need a number between 3 and 12 as first argument (square size)" 
-    unless defined $size and $size > 2 and  $size < 13; 
+    unless defined $size and $size > 2 and  $size < 13;
+my $print = shift;
 
 my $max_value         = $size ** 2;
 my $avg_cell_value    = (1 + $max_value) / 2;
 my $half_size         = int $size / 2;
 my $size_odd          = $size % 2;
 my $full_groups       = $size * 2 + 2;
-my $rect_groups       = $half_size * ($half_size - 1);
-my $diag_pair_groups  = $half_size * 2;
-my $rhomb_pair_groups = $half_size * 2 * $size_odd;
-my $pair_groups       = $diag_pair_groups + $rhomb_pair_groups;
-my $group_count       = $full_groups + $rect_groups + $pair_groups;
-
-my ($i, $j, $pos, $value);
-
-for 0 .. $group_count;
+my $even_pair_groups  = $half_size * $half_size * 2;
+my $odd_pair_groups   = $half_size * $size_odd * 2;
+my $group_count       = $full_groups + $even_pair_groups + $odd_pair_groups;
 
 
-my (@val_at_pos, @pos_at_val, @groups, @groups_at_pos); # group: nr, el, ak, sum, @pos
+my ($i, $j, $pos, $value)
+my ($min_open_pos, $max_open_pos, $min_open_value, $max_open_value);
+
+#for 0 .. $group_count;
 
 
-my $iterStack;
+my (@val_at_pos, @pos_of_val, @groups, @groups_at_pos, @group_sum, @open_pos, @open_value); # group: nr, el, ak, sum, @pos
+
+
+my ($iterStack, $dataStack) = ([], []);
 
 say "it took:",timestr(timediff( Benchmark->new, $timer));
 
@@ -42,6 +44,12 @@ sub print_sqr {
 }
 
 __END__
+
+cell type 
+    0 check
+    1 fill
+    2 single
+    4 pair
 
     struct Group {
         unsigned char cell_count;

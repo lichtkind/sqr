@@ -1,0 +1,48 @@
+             17 iterations on square size 3, found         2 solutions in   0.000265 sec
+            101 iterations on square size 4, found         4 solutions in   0.000364 sec
+      9.556.765 iterations on square size 5, found    17.376 solutions in   0.328201 sec (24 from 10 x, x6)
+     12.266.697 iterations on square size 5, found    17.376 solutions in   0.333727 sec
+
+ 10.000.000.000 iterations on square size 6, found 8.008.279 solutions in 845.520626 sec
+                                                   3.834.468
+                                                  
+ 10.000.000.000 iterations on square size 6, found         0 solutions in 411.794715 sec 
+100.000.000.000                                                          3996.424350 sec = 66.6 min
+
+10.000.000.000 iterations on square size 7, found 7.482.456 solutions in 438.647001 sec
+1.000.000.000 iterations on square size 7, found 1.331.878 solutions (0 bad) in 37.749970 sec
+
+
+
+   c1     c2     c3     c4    c5     c6
+
+
+   c7     c8     c9    c10    c11   c12
+
+
+  c13    c14    c15    c16    c17   c18
+
+
+  c19    c20    c21    c22    c23   c24
+
+
+  c25    c26    c27    c28    c29   c30
+
+
+  c31    c32    c33    c34    c35   c36
+
+
+
+
+
+c4   = 37 - c3
+c35  = 37 - c5
+c36  = 37 - c1
+
+
+
+
+
+
+
+37 / 2 = 18.5

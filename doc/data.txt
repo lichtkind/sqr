@@ -10,7 +10,7 @@
 100.000.000.000                                                          3996.424350 sec = 66.6 min
 
 10.000.000.000 iterations on square size 7, found 7.482.456 solutions in 438.647001 sec
-1.000.000.000 iterations on square size 7, found 1.331.878 solutions (0 bad) in 37.749970 sec
+ 1.000.000.000 iterations on square size 7, found 1.331.878 solutions in  37.749970 sec
 
 
 
